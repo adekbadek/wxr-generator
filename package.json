@@ -2,7 +2,7 @@
   "name": "wxr-generator",
   "version": "0.2.0",
   "description": "XML(WXR) file generator for fully support official WordPress Import Plugin.",
-  "main": "./lib",
+  "main": "./src",
   "scripts": {
     "compile": "babel --presets es2015,stage-1 --plugins transform-runtime src/ --out-dir lib/",
     "prepublish": "npm run compile",
@@ -28,7 +28,8 @@
   },
   "homepage": "https://github.com/firekylin/wxr-generator#readme",
   "dependencies": {
-    "xmlbuilder": "^9.0.1"
+    "date-format": "^3.0.0",
+    "xmlbuilder": "^15.1.1"
   },
   "devDependencies": {
     "babel": "^6.23.0",
