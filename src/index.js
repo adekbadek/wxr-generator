@@ -68,7 +68,7 @@ module.exports = class Generator {
     id = rId(),
     url,
     slug,
-    date,
+    date = String(new Date()),
     title,
     author,
     content,
@@ -233,7 +233,7 @@ module.exports = class Generator {
   addAttachment({
     id = rId(),
     url,
-    date,
+    date = String(new Date()),
     file,
     title,
     author,
