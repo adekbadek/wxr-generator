@@ -65,22 +65,23 @@ module.exports = class Generator {
    * tags: post tags, it's an array item. Every item should has `slug` and `name` prototype.
    */
   addPost({
-    id = rId(),
-    url,
     slug,
-    date = String(new Date()),
     title,
     author,
-    content,
-    summary,
+    url,
+    content = "",
+    summary = "",
+    id = rId(),
+    date = new Date(),
     comment_status = "open",
     ping_status = "open",
     status = "publish",
     type = "post",
     password = "",
-    categories,
-    tags,
-    image,
+    categories = [],
+    tags = [],
+    terms = [],
+    image = false,
     meta = []
   }) {
     let post = this.channel.ele("item");
@@ -97,33 +98,26 @@ module.exports = class Generator {
     post.ele("wp:post_date_gmt").cdata(formatDate(date));
     post.ele("wp:comment_status").cdata(comment_status);
     post.ele("wp:ping_status").cdata(ping_status);
-    post.ele("post_name").cdata(title);
+    post.ele("wp:post_name").cdata(slug);
     post.ele("wp:status").cdata(status);
     post.ele("wp:post_parent", {}, 0);
     post.ele("wp:menu_order", {}, 0);
-    post.ele("wp:post_type", {}, type);
+    post.ele("wp:post_type").cdata(type);
     post.ele("wp:post_password").cdata(password);
     post.ele("wp:is_sticky", {}, 0);
-    if (Array.isArray(categories)) {
-      categories.forEach(cate =>
+
+    terms
+      .concat(categories)
+      .concat(tags)
+      .forEach(category =>
         post
           .ele("category", {
-            domain: "category",
-            nicename: cate.slug
+            domain: category.domain || "category",
+            nicename: category.slug
           })
-          .cdata(cate.name)
+          .cdata(category.name)
       );
-    }
-    if (Array.isArray(tags)) {
-      tags.forEach(tag =>
-        post
-          .ele("category", {
-            domain: "category",
-            nicename: tag.slug
-          })
-          .cdata(tag.name)
-      );
-    }
+
     if (image) {
       post.ele({
         "wp:postmeta": [
@@ -208,14 +202,33 @@ module.exports = class Generator {
    * parent_id: category parent id if it existed.
    * description: category description string, default is empty.
    */
-  addCategory({ id = rId(), slug, name, parent_id = 0, description = "" }) {
-    let category = this.channel.ele("wp:category");
-    category.ele("wp:term_id", {}, id);
-    category.ele("wp:category_nicename", {}, slug);
-    category.ele("wp:cat_name", {}, name);
-    category.ele("wp:category_description", {}, "");
+  addCategory({
+    id = rId(),
+    slug,
+    name,
+    parent_id = 0,
+    description = "",
+    termType = "category"
+  }) {
+    const isCategory = termType === "category";
+    let term = this.channel.ele(`wp:${isCategory ? "category" : "term"}`);
+    term.ele("wp:term_id", {}, id);
+    term
+      .ele(`wp:${isCategory ? "category_nicename" : "term_slug"}`)
+      .cdata(slug);
+    term.ele(`wp:${isCategory ? "cat_name" : "term_name"}`).cdata(name);
+    term
+      .ele(`wp:${isCategory ? "category_description" : "term_description"}`)
+      .cdata(description);
+    if (!isCategory) {
+      term.ele("wp:term_taxonomy").cdata(termType);
+    }
     if (parent_id) {
-      category.ele("wp:category_parent", {}, parent_id);
+      term.ele(
+        `wp:${isCategory ? "category_parent" : "term_parent"}`,
+        {},
+        parent_id
+      );
     }
   }
 
